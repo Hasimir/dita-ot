@@ -22,6 +22,12 @@ Anything written in pure Python for version 2.7.x should run.  Those modules whi
 Other major packages of interest which can be installed include Sphinx, Flask, Django and no doubt many others.
 
 
+How much disk space does it need?
+---------------------------------
+
+A full installation is about 180MB plus any additional modules installed along with their dependencies.  Expect around 200MB or so with the three additions (see below).  The installer .jar file is about 90MB.  A standalone installation is a little under 40MB, but cannot use additional Python modules.  Unless space is at an absolute premium, use the full installation.
+
+
 Which non-standard packages are installed here and why?
 -------------------------------------------------------
 
@@ -81,3 +87,76 @@ Like this::
 
 That's the thing which made me consider it necessary to at least have as an optional installation component.  No doubt there will be other tasks it will be better suited to addressing.
 
+
+Couldn't that datetime thing have been done in Java directly?
+-------------------------------------------------------------
+
+Probably, but it wasn't.
+
+
+Why didn't you do it in Java then?
+----------------------------------
+
+I loathe Java with the intensity of a thousand suns, never in Hell.
+
+
+But why?  Java is great, it's platform independent and ...
+----------------------------------------------------------
+
+Let me just stop you right there.  It's not platform independent and never has been, though it has blurred the lines a little.  There are many, many faults with it and very good reasons why we never used it internally if we could avoid it and we always found ways to avoid it.
+
+Sooner or later you'll dig deep enough on a system different from your usual one.  When the dull throbbing behind your eyes reaches a peak, remember, you were warned.
+
+
+We?
+---
+
+Erm ... go find my LinkedIn if you haven't worked it out already.
+
+
+You're a computing snob, aren't you?
+------------------------------------
+
+Well ... yes, I guess I am.
+
+
+What directories and files are created?
+---------------------------------------
+
+Jython is installed to src/main/jython with the executables in src/main/jython/bin and symbolic links for those files created in src/main/bin.  The installer and/or stand alone .jar files are downloaded to src/main/resources/org/jython (with that last part made during the installation process.
+
+When the installation completes, different things happen depending on the type of installation it is.
+
+If you opted for a stand alone implementation via download then the following happens:
+
+* The standalone file is saved in resources/org/jython.
+* A shell script is created as bin/jython to load the .jar through java.
+* A Windows batch file is made to mirror it as bin/jython.bat (maybe).
+* jbin/ is moved into resources/org/jython
+* src/main/jython is removed if it exists.
+
+If you downloaded the full installer, but generated the standalone then this happened:
+
+* The new standalone is installed to src/main/jython.
+* The install file is saved in resources/org/jython.
+* A shell script is created as bin/jython to load the .jar through java.
+* A Windows batch file is made to mirror it as bin/jython.bat (maybe).
+* jbin/ is moved into resources/org/jython
+
+If the full installation was made then it is all in src/main/jython and this happened:
+
+* The install file is saved in resources/org/jython.
+* The jython executable is in src/main/jython/bin.
+* Easy_install and pip are also in src/main/jython/bin.
+* The Jython docs are in src/main/jython/Doc/javadoc.
+* A new jydoc directory is made here: src/main/jython/Doc/jydoc.
+* pip is used to install requests.
+* requests is used to obtain the current docutils snapshot.
+* docutils snapshot is installed with pip.
+* sphinx is installed with pip (normally).
+* sphinx files are generated and installed into jydoc.
+* sphinx is made.
+* jbin/docs files are copied to jydoc.
+* jbin is moved to resources/org/jython.
+* symlinks are made for the files in jython/bin to bin/
+  
