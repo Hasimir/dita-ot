@@ -88,38 +88,6 @@ Like this::
 That's the thing which made me consider it necessary to at least have as an optional installation component.  No doubt there will be other tasks it will be better suited to addressing.
 
 
-Couldn't that datetime thing have been done in Java directly?
--------------------------------------------------------------
-
-Probably, but it wasn't.
-
-
-Why didn't you do it in Java then?
-----------------------------------
-
-I loathe Java with the intensity of a thousand suns, never in Hell.
-
-
-But why?  Java is great, it's platform independent and ...
-----------------------------------------------------------
-
-Let me just stop you right there.  It's not platform independent and never has been, though it has blurred the lines a little.  There are many, many faults with it and very good reasons why we never used it internally if we could avoid it and we always found ways to avoid it.
-
-Sooner or later you'll dig deep enough on a system different from your usual one.  When the dull throbbing behind your eyes reaches a peak, remember, you were warned.
-
-
-We?
----
-
-Erm ... go find my LinkedIn if you haven't worked it out already.
-
-
-You're a computing snob, aren't you?
-------------------------------------
-
-Well ... yes, I guess I am.
-
-
 What directories and files are created?
 ---------------------------------------
 
