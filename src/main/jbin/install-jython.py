@@ -55,6 +55,20 @@ else:
     jppurl = jpjarp
     jpfull = False
 
+maninst = """
+We recommend you install the requests package or install manually.
+
+Follow these instructions to install Jython manually:
+
+    https://wiki.python.org/jython/InstallationInstructions
+
+We recommend the full install by running:
+
+java -jar jython_installer-2.7.0.jar --console
+
+Accept the defaults for everything and install to src/main/jython in
+the dita-ot distribution.
+"""
 
 if gotRequests is True:
     try:
@@ -65,46 +79,21 @@ if gotRequests is True:
     afile.write(r.content)
     afile.close()
 elif gotRequests is False and sys.version_info[0] == 3:
-    import urllib.request
-    afile = open(jpyinst, "wb")
-    with urllib.request.urlopen(jpurl) as f:
-        afile.write(f.read())
-    afile.close()
+    try:
+        import urllib.request
+        afile = open(jpyinst, "wb")
+        with urllib.request.urlopen(jpurl) as f:
+            afile.write(f.read())
+        afile.close()
+    except:
+        print(maninst)
+        gtfo = True
 elif gotRequests is False and sys.version_info[0] == 2:
-    print("""We recommend you install the requests package or install manually.
-
-Follow these instructions to install Jython manually:
-
-    https://wiki.python.org/jython/InstallationInstructions
-
-We recommend the full install by running:
-
-java -jar jython_installer-2.7.0.jar --console
-
-Accept the defaults for everything and install to src/main/jython in
-the dita-ot distribution.
-
-""")
+    print(maninst)
     os.mkdir('../jython')
     gtfo = True
 else:
-    print("""You may need to install Jython manually.
-
-Follow these instructions to install Jython manually:
-
-    https://wiki.python.org/jython/InstallationInstructions
-
-We recommend the full install by running:
-
-java -jar jython_installer-2.7.0.jar --console
-
-Accept the defaults for everything and install to src/main/jython in
-the dita-ot distribution.
-
-If you are using OS X, Linux, BSD or any similar *nix, the two bash
-scripts should do most of this.  Windows users will need to do it
-manually.
-    """)
+    print(maninst)
     os.mkdir('../jython')
     gtfo = True
 
@@ -118,10 +107,40 @@ else:
 if jpfull is True:
     try:
         # install with console
-        # run pip to install docutils and requests
     except:
         # install without console
-        # run pip to install docutils and requests
 else:
     # add a shell script called "jython" to bin/ which calls the standalone
     # script via java.
+
+
+# Post-installation and clean-up:
+
+if jpfull is True and op.exists("../jython/bin/jython") is True:
+    installtype = "full"
+elif jpfull is True and op.exists("../jython/bin/jython") is False:
+    installtype = "compiled"
+else:
+    installtype = "download"
+
+
+if installtype == "full":
+    # run pip to install requests, docutils and sphinx
+    # make ../jython/Doc/jydoc
+    # copy jbin/docs/ content to ../jython/Doc/jydoc
+    # sphinx generation/config
+    # make symlinks
+    # move src/main/jbin/ to src/main/resources/org/jython/
+elif installtype == "compiled":
+    # installation file remains in resources.
+    # Compiled .jar in src/main/jython directory.
+    # Create shell script in src/main/bin to invoke java loading that file.
+    # shell script should be called jython.
+    # move src/main/jbin/ to src/main/resources/org/jython/
+elif installation == "download":
+    # installation file remains in resources.
+    # installation file is the jython instance, so:
+    # Create shell script in src/main/bin to invoke java loading that file.
+    # shell script should be called jython.
+    # remove src/main/jython if it exists.
+    # move src/main/jbin/ to src/main/resources/org/jython/
