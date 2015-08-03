@@ -22,41 +22,14 @@ except:
     import urllib.request
     gotRequests = False
 
-jpbigs = "https://repo1.maven.org/maven2/org/python/jython-installer/2.7.0/jython-installer-2.7.0.jar"
-jpjars = "https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.0/jython-standalone-2.7.0.jar"
-jpbigp = "http://repo1.maven.org/maven2/org/python/jython-installer/2.7.0/jython-installer-2.7.0.jar"
-jpjarp = "http://repo1.maven.org/maven2/org/python/jython-standalone/2.7.0/jython-standalone-2.7.0.jar"
+jpurls = "https://repo1.maven.org/maven2/org/python/jython-installer/2.7.0/jython-installer-2.7.0.jar"
+jpurlp = "http://repo1.maven.org/maven2/org/python/jython-installer/2.7.0/jython-installer-2.7.0.jar"
 jpydir = "../resources/org/jython"
-jpyijar = "jython-installer-2.7.0.jar"
-jpysjar = "jython-standalone-2.7.0.jar"
+jpyjar = "jython-installer-2.7.0.jar"
 
 
-if len(sys.argv) >= 2:
-    jpyver = sys.argv[1]
-elif len(sys.argv) < 2 and sys.version_info[0] == 2:
-    jpyver = raw_input("""Which version of Jython do you want:
+jpyinst = jpydir+"/"+jpyjar
 
-        1. full
-        2. self-contained
-    """)
-elif len(sys.argv) < 2 and sys.version_info[0] == 3:
-    jpyver = input("""Which version of Jython do you want:
-
-        1. full
-        2. self-contained
-    """)
-
-
-if jpyver.lower() == "all" or "full" or "1":
-    jpyinst = jpydir+"/"+jpyijar
-    jpsurl = jpbigs
-    jppurl = jpbigp
-    jpfull = True
-else:
-    jpyinst = jpydir+"/"+jpysjar
-    jpsurl = jpjars
-    jppurl = jpjarp
-    jpfull = False
 
 maninst = """
 We recommend you install the requests package or install manually.
@@ -75,9 +48,9 @@ the dita-ot distribution.
 
 if gotRequests is True:
     try:
-        r = requests.get(jpsurl, verified=True)
+        r = requests.get(jpurls, verified=True)
     except:
-        r = requests.get(jppurl, verified=False)
+        r = requests.get(jpurlp, verified=False)
     afile = open(jpyinst, "wb")
     afile.write(r.content)
     afile.close()
@@ -85,19 +58,14 @@ elif gotRequests is False and sys.version_info[0] == 3:
     try:
         import urllib.request
         afile = open(jpyinst, "wb")
-        with urllib.request.urlopen(jpurl) as f:
+        with urllib.request.urlopen(jpurlp) as f:
             afile.write(f.read())
         afile.close()
     except:
         print(maninst)
         gtfo = True
-elif gotRequests is False and sys.version_info[0] == 2:
-    print(maninst)
-    os.mkdir('../jython')
-    gtfo = True
 else:
     print(maninst)
-    os.mkdir('../jython')
     gtfo = True
 
 
@@ -118,47 +86,70 @@ else:
     java = "java"
 
 
+try:
+    s1a = sp.Popen([java, "-jar", jpyinst, "--console"], stdout=sp.PIPE)
+    s1b = s1a.communicate()[0].decode("utf-8")
+    # install with console (may not work unless using os.system).
+    # better put this in a shell script and launch that way.
+except:
+    s1a = sp.Popen([java, "-jar", jpyinst], stdout=sp.PIPE)
+    s1b = s1a.communicate()[0].decode("utf-8")        
+    # install without console, uses GUI instead.
+
+# check to see if human opted for full install or just the stand alone from the
+# installer.
+
+if op.exists("../jython/bin/jython") is True:
+    jpfull = True
+    jython = "../jython/bin/jython"
+    pip = "../jython/bin/pip2"
+elif op.exists("../jython/jython.jar") is True:
+    jpfull = False
+else:
+    jpfull = None
+
+
 if jpfull is True:
-    try:
-        s1a = sp.Popen([java, "-jar", jpyinst, "--console"], stdout=sp.PIPE)
-        s1b = s1a.communicate()[0].decode("utf-8")
-        # install with console (may not work unless using os.system).
-    except:
-        s1a = sp.Popen([java, "-jar", jpyinst], stdout=sp.PIPE)
-        s1b = s1a.communicate()[0].decode("utf-8")        
-        # install without console
-else:
-    # add a shell script called "jython" to bin/ which calls the standalone
-    # script via java.
+    j1a = sp.Popen([pip, "install", "requests"], stdout=sp.PIPE)
+    j1b = j1a.communicate()[0].decode("utf-8")
+    os.mkdir("temp")
+    import requests
+    snap = "./temp/docutils-snapshot.tar.gz"
+    shot = "http://docutils.sourceforge.net/docutils-snapshot.tgz"
+    r = requests.get(shot)
+    afile = open(snap, "wb")
+    afile.write(r.content)
+    afile.close()
+    j2a = sp.Popen(["tar", "-xzvf", snap], stdout=sp.PIPE)
+    j2b = j2a.communicate()[0].decode("utf-8")
+    j3a = sp.Popen([pip, "install", "-e", "temp/"], stdout=sp.PIPE)
+    j3b = j3a.communicate()[0].decode("utf-8")
+    os.mkdir("../jython/Doc/jydoc")
+    jydocs = "../jython/Doc/jydoc"
+    j4a = sp.Popen([pip, "install", "sphinx"], stdout=sp.PIPE)
+    j4b = j4a.communicate()[0].decode("utf-8")
+    mydocs = ls("docs/")
+    for i in range(len(mydocs)):
+        shutil.copy2("docs/{0}".format(mydocs[i]),
+                     "{0}/{1}".format(jydoc, mydocs[i]))
+    jyb = ls("../jython/bin/")
+    for i in range(len(jyb)):
+        os.symlink("../jython/bin/{0}".format(jyb[i]),
+                   "../bin/{0}".format(jyb[i]))
+    print("""
+To complete the installation process, run the sphinx-quickgen script
+and direct the output to Doc/jydocs/ when prompted.
+""")
+    os.move("../jbin/", "../resources/org/jython/")
+elif jpfull is False:
+    afile = open("../bin/jython", "w")
+    afile.write("""#!/bin/bash
 
-
-# Post-installation and clean-up:
-
-if jpfull is True and op.exists("../jython/bin/jython") is True:
-    installtype = "full"
-elif jpfull is True and op.exists("../jython/bin/jython") is False:
-    installtype = "compiled"
-else:
-    installtype = "download"
-
-
-if installtype == "full":
-    # run pip to install requests, docutils and sphinx
-    # make ../jython/Doc/jydoc
-    # copy jbin/docs/ content to ../jython/Doc/jydoc
-    # sphinx generation/config
-    # make symlinks
-    # move src/main/jbin/ to src/main/resources/org/jython/
-elif installtype == "compiled":
-    # installation file remains in resources.
-    # Compiled .jar in src/main/jython directory.
-    # Create shell script in src/main/bin to invoke java loading that file.
-    # shell script should be called jython.
-    # move src/main/jbin/ to src/main/resources/org/jython/
-elif installation == "download":
-    # installation file remains in resources.
-    # installation file is the jython instance, so:
-    # Create shell script in src/main/bin to invoke java loading that file.
-    # shell script should be called jython.
-    # remove src/main/jython if it exists.
-    # move src/main/jbin/ to src/main/resources/org/jython/
+{0} -jar ../jython/jython.jar
+""".format(java))
+    afile.close()
+    os.chmod("../bin/jython", 755)
+    os.move("../jbin/", "../resources/org/jython/")
+elif jpfull is None:
+    print(maninst)
+    # Leave installation directories intact.
