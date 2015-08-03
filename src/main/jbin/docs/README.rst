@@ -50,3 +50,34 @@ I've got an API to generate/submit/etc. certain document types, can this help?
 I'll direct your attention back to requests, go have fun.  ;)
 
 
+What about Python 3?
+--------------------
+
+There is no Jython implementation using Python 3 yet.  If you need it, do what I do: write Python 3 scripts and then get Jython to call them as commands with subprocess or load them with the python3 interpreter also via subprocess.
+
+Be careful, though, this also enables running any system command and could be a security issue depending on where dita-ot is installed and who has access to it.
+
+
+What specifically does this add to DITA?  What problem does it solve?
+---------------------------------------------------------------------
+
+To implement ePub 3.0 correctly the dc:modified element must be updated in the metadata every time the .epub file is modified and saved.  The format for that is the ISO date and time format of "YYYY-MM-DDThh:mm:ssZ" and the "Z" on the end indicates that it MUST be UTC (Zulu time).  While XSLTs can add a datetime string in that format, they can't consistently obtain the timezone offset and add the correct real time.  Whereas Python and, in this case, Jython can.
+
+The datetime module can be used to obtain the correct string to use at the time it is needed, while the xml modules can rewrite the metadata file itself.  These are all part of the standard library in Python and will thus be available even if only the standalone Jython .jar file is used instead of a full installation.
+
+The correct datetime command to produce the string is::
+
+    datetime.datetime.utcnow().isoformat()[:19] + "Z"
+
+Like this::
+
+    Python 2.7.10 (default, Jul 23 2015, 12:29:14) 
+    [GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.57)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import datetime
+    >>> print(datetime.datetime.utcnow().isoformat()[:19] + "Z")
+    2015-08-03T03:23:37Z
+    >>> ^D
+
+That's the thing which made me consider it necessary to at least have as an optional installation component.  No doubt there will be other tasks it will be better suited to addressing.
+
