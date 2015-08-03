@@ -8,10 +8,13 @@ import os.path
 import sys
 import subprocess
 
+oe = os.environ
 ls = os.listdir
 op = os.path
 gtfo = None
-    
+sp = subprocess
+
+
 try:
     import requests
     gotRequests = True
@@ -104,10 +107,25 @@ else:
     pass
 
 
+try:
+    java_home = oe["JAVA_HOME"]
+except KeyError:
+    java_home = None
+
+if java_home is not None and java_home != "":
+    java = "{0}/bin/java".format(java_home)
+else:
+    java = "java"
+
+
 if jpfull is True:
     try:
-        # install with console
+        s1a = sp.Popen([java, "-jar", jpyinst, "--console"], stdout=sp.PIPE)
+        s1b = s1a.communicate()[0].decode("utf-8")
+        # install with console (may not work unless using os.system).
     except:
+        s1a = sp.Popen([java, "-jar", jpyinst], stdout=sp.PIPE)
+        s1b = s1a.communicate()[0].decode("utf-8")        
         # install without console
 else:
     # add a shell script called "jython" to bin/ which calls the standalone
