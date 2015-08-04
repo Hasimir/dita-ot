@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import os.path
+import shutil
 import sys
 import subprocess
 
@@ -50,7 +51,7 @@ if gotRequests is True:
     try:
         r = requests.get(jpurls, verified=True)
     except:
-        r = requests.get(jpurlp, verified=False)
+        r = requests.get(jpurlp)
     afile = open(jpyinst, "wb")
     afile.write(r.content)
     afile.close()
@@ -86,18 +87,19 @@ else:
     java = "java"
 
 
+# Install everything silently (with a fallback of the GUI):
+
 try:
-    s1a = sp.Popen([java, "-jar", jpyinst, "--console"], stdout=sp.PIPE)
+    s1a = sp.Popen([java, "-jar", jpyinst, "-s", "-d", "../jython",
+                    "-t", "all"], stdout=sp.PIPE)
     s1b = s1a.communicate()[0].decode("utf-8")
-    # install with console (may not work unless using os.system).
-    # better put this in a shell script and launch that way.
 except:
     s1a = sp.Popen([java, "-jar", jpyinst], stdout=sp.PIPE)
     s1b = s1a.communicate()[0].decode("utf-8")        
     # install without console, uses GUI instead.
 
-# check to see if human opted for full install or just the stand alone from the
-# installer.
+
+# Retaining check just in case weird shit happens:
 
 if op.exists("../jython/bin/jython") is True:
     jpfull = True
