@@ -31,13 +31,14 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class KeyDef {
     
-    private static final String ELEMENT_STUB = "stub";
-    private static final String ATTRIUBTE_SOURCE = "source";
+    public static final String ELEMENT_STUB = "stub";
+    private static final String ATTRIBUTE_SOURCE = "source";
     private static final String ATTRIBUTE_HREF = "href";
     private static final String ATTRIBUTE_SCOPE = "scope";
     private static final String ATTRIBUTE_KEYS = "keys";
     private static final String ELEMENT_KEYDEF = "keydef";
     
+    /** Space delimited list of key names */
     public final String keys;
     public final URI href;
     public final String scope;
@@ -55,8 +56,8 @@ public class KeyDef {
     public KeyDef(final String keys, final URI href, final String scope, final URI source, final Element element) {
         //assert href.isAbsolute();
         this.keys = keys;
-        this.href = href;
-        this.scope = scope;
+        this.href = href == null || href.toString().isEmpty() ? null : href;
+        this.scope = scope == null ? ATTR_SCOPE_VALUE_LOCAL : scope;
         this.source = source;
         this.element = element;
     }
@@ -101,14 +102,12 @@ public class KeyDef {
                     keydef.writeAttribute(ATTRIBUTE_SCOPE, k.scope);
                 }
                 if (k.source != null) {
-                    keydef.writeAttribute(ATTRIUBTE_SOURCE, k.source.toString());
+                    keydef.writeAttribute(ATTRIBUTE_SOURCE, k.source.toString());
                 }
                 keydef.writeEndElement();
             }        
             keydef.writeEndDocument();
-        } catch (final XMLStreamException e) {
-            throw new DITAOTException("Failed to write key definition file " + keydefFile + ": " + e.getMessage(), e);
-        } catch (final IOException e) {
+        } catch (final XMLStreamException | IOException e) {
             throw new DITAOTException("Failed to write key definition file " + keydefFile + ": " + e.getMessage(), e);
         } finally {
             if (keydef != null) {

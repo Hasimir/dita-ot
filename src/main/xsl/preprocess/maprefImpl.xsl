@@ -33,8 +33,8 @@
   </xsl:template>
 
   <xsl:template match="*[contains(@class, ' map/topicref ')][(@format, @dita-ot:orig-format) = 'ditamap']
-                        [empty(@href | @dita-ot:orig-href) or
-                         @processing-role = 'resource-only' or
+                        [empty(@href(: | @dita-ot:orig-href:)) or
+                         (:@processing-role = 'resource-only' or:)
                          @scope = ('peer', 'external')]" priority="15">
     <xsl:copy>
       <xsl:apply-templates select="@* | node()"/>
@@ -117,6 +117,16 @@
                 <xsl:value-of select="substring-after($href, '#')"/>
               </xsl:if>
             </xsl:variable>
+            <xsl:variable name="target" as="element()?">
+              <xsl:choose>
+                <xsl:when test="exists($element-id)">
+                  <xsl:sequence select="$file//*[@id = $element-id]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:sequence select="$file/*"/>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
             <xsl:variable name="contents" as="node()*">
               <xsl:choose>
                 <xsl:when test="not(contains($href,'://') or empty($element-id) or $file/*[contains(@class,' map/map ')][@id = $element-id])">
@@ -128,6 +138,13 @@
                 </xsl:otherwise>
               </xsl:choose>
             </xsl:variable>
+            <!-- retain key definition as a separate element -->
+            <xsl:if test="@keys">
+              <keydef class="+ map/topicref mapgroup-d/keydef ditaot-d/keydef " processing-role="resource-only">
+                <xsl:apply-templates select="@* except (@class | @processing-role)"/>
+                <xsl:apply-templates select="*[contains(@class, ' map/topicmeta ')]"/>
+              </keydef>
+            </xsl:if>
             <!-- href and format need to be retained for keyref processing but must be put to an internal namespace to prevent other modules to interact with this element -->
             <submap class="+ map/topicref mapgroup-d/topicgroup ditaot-d/submap "
                     dita-ot:orig-href="{$href}"
@@ -139,7 +156,18 @@
                 </xsl:if>
                 <xsl:value-of select="$href"/>
               </xsl:attribute>
-              <xsl:apply-templates select="@* except (@class, @href, @dita-ot:orig-href, @format, @dita-ot:orig-format)"/>
+              <xsl:if test="@keyscope | $target[@keyscope and contains(@class, ' map/map ')]">
+                <xsl:attribute name="keyscope">
+                  <xsl:variable name="keyscope">
+                    <xsl:value-of select="@keyscope"/>
+                    <xsl:text> </xsl:text>
+                    <xsl:value-of select="$target[contains(@class, ' map/map ')]/@keyscope"/>
+                  </xsl:variable>
+                  <xsl:value-of select="normalize-space($keyscope)"/>
+                </xsl:attribute>
+              </xsl:if>
+              <xsl:apply-templates select="@* except (@class, @href, @dita-ot:orig-href, @format, @dita-ot:orig-format, @keys, @keyscope)"/>
+              <xsl:apply-templates select="*[contains(@class, ' ditavalref-d/ditavalref ')]"/>
               <xsl:apply-templates select="$contents">
                 <xsl:with-param name="refclass" select="$refclass"/>
                 <xsl:with-param name="mapref-id-path" select="$updated-id-path"/>
@@ -163,7 +191,8 @@
             </submap>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:if test="$child-topicref-warning = 'true' and *[contains(@class, ' map/topicref ')]">
+        <xsl:if test="$child-topicref-warning = 'true' and *[contains(@class, ' map/topicref ')]
+                                                            [not(contains(@class, ' ditavalref-d/ditavalref '))]">
           <xsl:call-template name="output-message">
             <xsl:with-param name="msgnum">068</xsl:with-param>
             <xsl:with-param name="msgsev">W</xsl:with-param>

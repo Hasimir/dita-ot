@@ -19,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.dita.dost.exception.DITAOTException;
 import org.w3c.dom.*;
@@ -76,7 +77,18 @@ public final class XMLUtils {
      * @raturn list of matching elements
      */
     public static List<Element> getChildElements(final Element elem) {
-        final NodeList children = elem.getChildNodes();
+        return getChildElements(elem, false);
+    }
+
+    /**
+     * List child elements elements.
+     *
+     * @param elem root element
+     * @param deep {@code true} to read descendants, {@code false} to read only direct children
+     * @raturn list of matching elements
+     */
+    public static List<Element> getChildElements(final Element elem, final boolean deep) {
+        final NodeList children = deep ? elem.getElementsByTagName("*") : elem.getChildNodes();
         final List<Element> res = new ArrayList<>(children.getLength());
         for (int i = 0; i < children.getLength(); i++) {
             final Node child = children.item(i);
@@ -181,6 +193,21 @@ public final class XMLUtils {
         return buf.toString();
     }
     
+    /**
+     * Transform file with XML filters. Only file URIs are supported.
+     *
+     * @param input absolute URI to transform and replace
+     * @param filters XML filters to transform file with, may be an empty list
+     */
+    public static void transform(final URI input, final List<XMLFilter> filters) throws DITAOTException {
+        assert input.isAbsolute();
+        if (!input.getScheme().equals("file")) {
+            throw new IllegalArgumentException("Only file URI scheme supported: " + input);
+        }
+
+        transform(new File(input), filters);
+    }
+
     /**
      * Transform file with XML filters.
      * 
@@ -302,6 +329,22 @@ public final class XMLUtils {
                 i.close();
             } else {
                 final Reader w = input.getCharacterStream();
+                if (w != null) {
+                    w.close();
+                }
+            }
+        }
+    }
+
+    /** Close source. */
+    public static void close(final Source input) throws IOException {
+        if (input != null && input instanceof StreamSource) {
+            final StreamSource s = (StreamSource) input;
+            final InputStream i = s.getInputStream();
+            if (i != null) {
+                i.close();
+            } else {
+                final Reader w = s.getReader();
                 if (w != null) {
                     w.close();
                 }
